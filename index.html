@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<title>窗外信使 · 外泌体与蓝夜</title>
+<script>
+  /* 诊断：把任何未捕获的 JS 错误直接显示到屏幕上，便于定位"点击无反应"等问题 */
+  window.addEventListener('error', function (ev) {
+    var b = document.getElementById('errbox');
+    if (!b) {
+      b = document.createElement('div'); b.id = 'errbox';
+      b.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#3a0d0d;color:#ffe;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:10px;border:1px solid #a33;border-radius:8px;white-space:pre-wrap;max-height:42%;overflow:auto';
+      (document.body || document.documentElement).appendChild(b);
+    }
+    var e = ev.error || {};
+    b.textContent = 'JS错误：' + (ev.message || '') + '\n@ ' + (ev.filename || '') + ':' + ev.lineno + ':' + ev.colno + (e.stack ? ('\n' + e.stack) : '');
+  });
+  window.addEventListener('unhandledrejection', function (ev) {
+    var b = document.getElementById('errbox'); if (!b) { window.dispatchEvent(new ErrorEvent('error', { message: 'unhandledrejection' })); }
+    if (b) b.textContent = 'Promise错误：' + (ev.reason && (ev.reason.stack || ev.reason.message) || ev.reason);
+  });
+</script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <canvas id="scene"></canvas>
+  <div id="vignette"></div>
+  <div id="frame">
+    <span class="bar top"></span>
+    <span class="bar bottom"></span>
+    <span class="bar left"></span>
+    <span class="bar right"></span>
+    <span class="mullion v"></span>
+    <span class="mullion h"></span>
+  </div>
+
+  <header id="hud">
+    <div class="hud-left">
+      <button class="chip" id="btnChapters">目录</button>
+      <button class="chip" id="btnParams">窗景</button>
+      <button class="chip" id="btnLab">实验台</button>
+      <button class="chip" id="btnCodex">手册</button>
+    </div>
+    <div class="hud-mid" id="hudTitle">序 · 山屋的傍晚</div>
+    <div class="hud-right">
+      <div class="jar" id="jar" title="记忆之瓶 · 剧情推进条（每讲完一集 +1，与外泌体无关）">
+        <span class="jar-tag">剧情</span><span id="jarCount">0</span><span class="jar-unit">/16</span>
+        <i class="jar-glow"></i>
+      </div>
+      <button class="chip ghost" id="btnMusic" title="背景音乐">背景乐</button>
+      <button class="chip ghost" id="btnSound" title="按键音">按键音</button>
+      <button class="chip ghost" id="btnAuto">自动播放</button>
+    </div>
+  </header>
+
+  <!-- 音乐音量条（点击 HUD 的「乐」呼出） -->
+  <div id="musicPop" class="hidden">
+    <span class="mp-k">乐 · 音量</span>
+    <input type="range" id="musicVol" min="0" max="100" step="1" value="68">
+    <span id="musicVolVal">68%</span>
+  </div>
+
+  <div id="scoreHud">
+    <div class="sh-row"><span class="sh-k">用时</span><span class="sh-v" id="scoreTime">00:00</span></div>
+    <div class="sh-row"><span class="sh-k">外泌体</span><span class="sh-v" id="scoreExo">0</span></div>
+    <div class="sh-rank" id="scoreRank">第 1 / 1 名</div>
+    <div class="sh-egg-hint" id="scoreEggHint">最后剧情有彩蛋</div>
+  </div>
+
+  <main id="stage">
+    <div id="titlecard" class="hidden">
+      <div class="tc-num"></div>
+      <div class="tc-name"></div>
+      <div class="tc-sub"></div>
+      <div class="tc-line"></div>
+    </div>
+    <div id="choices" class="hidden"></div>
+    <div id="fxlayer"></div>
+  </main>
+
+  <section id="dlg">
+    <div class="who" id="who"></div>
+    <div class="text" id="text"></div>
+    <div class="cont" id="cont">点击继续</div>
+  </section>
+
+  <!-- 弹层 -->
+  <div id="overlay" class="hidden">
+    <div class="panel" id="panelParams">
+      <h3>窗景调参 <small>此刻的窗外，你想让它是什么样子</small></h3>
+      <div class="row" data-group="season"><label>季节</label>
+        <div class="opts">
+          <button data-v="spring">春</button><button data-v="summer">夏</button>
+          <button data-v="autumn">秋</button><button data-v="winter">冬</button>
+        </div>
+      </div>
+      <div class="row" data-group="weather"><label>天气</label>
+        <div class="opts">
+          <button data-v="clear">晴</button><button data-v="rain">雨</button>
+          <button data-v="snow">雪</button><button data-v="fog">雾</button>
+          <button data-v="motes">尘光</button><button data-v="fireflies">萤火</button>
+          <button data-v="leaves">落叶</button><button data-v="stars">星子</button>
+        </div>
+      </div>
+      <div class="row" data-group="tod"><label>时刻</label>
+        <div class="opts">
+          <button data-v="dawn">晨</button><button data-v="day">昼</button>
+          <button data-v="dusk">暮</button><button data-v="night">夜</button>
+        </div>
+      </div>
+      <div class="row slider" data-group="motes"><label>记忆光点</label>
+        <input type="range" id="moteRange" min="0" max="10" step="1" value="4">
+        <span id="moteVal">4</span>
+      </div>
+      <div class="panel-foot">
+        <span class="tip">任何时候都能改。开始新一集时，窗外会切回那一幕的样子。</span>
+        <button class="btn" data-close>合上</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panelChapters">
+      <h3>记忆目录 <small>已拾起的种子可以重看</small></h3>
+      <div id="chapterList" class="chapters"></div>
+      <div class="panel-foot">
+        <button class="btn ghost" id="btnWipe">清空进度</button>
+        <button class="btn" data-close>返回</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panelCodex">
+      <h3>外泌体手册 <small>每一枚种子，都是一条真实的科学</small></h3>
+      <div id="codexList" class="codex"></div>
+      <div class="panel-foot">
+        <button class="btn" data-close>合上</button>
+      </div>
+    </div>
+
+    <div class="panel card" id="panelSeed">
+      <div class="seed-orb" id="seedOrb"></div>
+      <h3 id="seedName"></h3>
+      <p id="seedFact"></p>
+      <div class="panel-foot center">
+        <button class="btn" data-close>收下这枚种子</button>
+      </div>
+    </div>
+
+    <div class="panel game" id="panelGame">
+      <div class="game-head">
+        <h3 id="gameTitle"></h3>
+        <div id="gameHint" class="hint"></div>
+        <div id="gameBest" class="best"></div>
+      </div>
+      <div class="game-stage">
+        <canvas id="gameCanvas" width="900" height="520"></canvas>
+        <canvas id="gameCanvas3D"></canvas>
+        <div class="game-hud"><span id="ghText"></span></div>
+        <div class="gh-bar"><i id="ghFill"></i></div>
+        <div id="gameSuccess" class="game-success"><b></b><span></span></div>
+      </div>
+      <div class="panel-foot center">
+        <button class="btn ghost" id="gameSkip">跳过这段</button>
+        <button class="btn" id="gameReplay">重玩本关</button>
+      </div>
+    </div>
+
+    <div class="panel miss" id="panelMiss">
+      <h2>遗憾没有采集</h2>
+      <p>这一段的外泌体，还留在窗外没被收进瓶子。<br>要返回把它补完，还是先继续往下听？</p>
+      <div class="panel-foot center">
+        <button class="btn" id="missBack">返回补那段游戏</button>
+        <button class="btn ghost" id="missGo">继续</button>
+      </div>
+    </div>
+
+    <div class="panel end" id="panelEnd">
+      <h2 id="endTitle"></h2>
+      <p id="endText"></p>
+      <div class="panel-foot center">
+        <button class="btn" id="endAgain">回到序章</button>
+        <button class="btn" id="endEpilogue">进入尾声</button>
+        <button class="btn ghost" id="endFree">自由看窗外</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panelLab">
+      <h3>实验台 <small>上帝视角 · 外泌体实验沙盒（不影响主线，记录会保存）</small></h3>
+      <canvas id="labCanvas" width="900" height="520"></canvas>
+      <div id="labStep" class="lab-step"></div>
+      <div id="labPreset" class="lab-preset hidden">
+        <div class="lp-head"><span id="labPresetTitle" class="lp-title"></span><span class="lp-tag">本集思路</span></div>
+        <div id="labPresetNote" class="lp-note"></div>
+        <button class="btn ghost" id="labPresetRun">按本集思路跑一遍</button>
+      </div>
+      <div class="lab-row"><span class="lab-label">源细胞</span><div id="labSrc" class="lab-chips"></div></div>
+      <div class="lab-row"><span class="lab-label">靶细胞</span><div id="labTgt" class="lab-chips"></div></div>
+      <div class="lab-row"><span class="lab-label">标记</span><div id="labLabel" class="lab-chips"></div></div>
+      <div id="labLog" class="lab-log"></div>
+      <div class="panel-foot">
+        <button class="btn ghost" id="labWipe">清空记录</button>
+        <div class="lab-foot-btns">
+          <button class="btn ghost" id="labIsolate">离心分离</button>
+          <button class="btn" id="labDeliver">投递</button>
+          <button class="btn ghost" id="labClose">合上</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 彩蛋：仰望星空（星河视频） -->
+    <div class="panel egg" id="panelEgg">
+      <div class="egg-vid-wrap">
+        <video id="eggVideo" class="egg-vid" muted loop playsinline preload="auto" poster="assets/bg/epilogue_end.jpg">
+          <source src="assets/video/v3.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="egg-caption">
+        <p>星光飞升，漫天黑夜星辰。</p>
+        <p>这漫天的星子，<br>就是你替老人送出的每一封信。</p>
+        <div id="eggRank" class="egg-rank"></div>
+      </div>
+      <div class="panel-foot center">
+        <button class="btn" id="eggContinue">打开那封信</button>
+      </div>
+    </div>
+
+    <!-- 彩蛋：没寄出的信 -->
+    <div class="panel letter" id="panelLetter">
+      <h2>一封没寄出的信</h2>
+      <div class="letter-body">
+        <p>亲爱的你：</p>
+        <p>这些小游戏都很简单。它们本不是做给玩家的，而是做给那些坐在窗边、已经走到人生最后的老人。我们想让他们在还能动手的时候，轻轻点一点、收一收，把一生拆成的种子，再安安静静地种回心里。</p>
+        <p>没有输赢，没有敌人，也没有时间催着你。只有窗外慢慢亮起来的光，和一下下平稳的呼吸。如果你也玩到了这里，希望你记得这种安详——不激烈，不喧哗，像陪在爱人身边那样自然。愿每一个将要离开的人，都被温柔地陪着，走得安详。</p>
+        <p class="letter-sign">—— 窗外信使 · 制作人 / AnnabelleXu 敬上</p>
+      </div>
+      <div class="panel-foot center">
+        <button class="btn" id="letterClose">回到窗前</button>
+        <button class="btn ghost" id="letterToCover">回到游戏封面</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 封面 -->
+  <div id="cover">
+    <video id="coverVideo" class="cv-vid" muted loop playsinline preload="auto">
+      <source src="assets/video/v1.mp4" type="video/mp4">
+    </video>
+    <div class="cv-bg"></div>
+    <div class="cv-side"><span>细胞写给细胞的信</span><i>信</i></div>
+    <h1 class="cv-title">窗外信使</h1>
+    <div class="cv-inner">
+      <div class="cv-kicker">互动故事 · 十六集</div>
+      <div class="cv-sub">外泌体与蓝夜</div>
+      <div class="cv-line"></div>
+      <p class="cv-desc">一位老人把一生拆成十六枚种子，<br>交给守在他身边的年轻人。</p>
+      <div class="cv-go">点击开始 · 先看一段前情提要</div>
+      <button class="cv-skip" id="coverSkip">跳过前情，直接进入</button>
+    </div>
+  </div>
+
+  <!-- 前情提要（逐镜旁白，可点/空格推进，可跳过） -->
+  <div id="recap" class="hidden">
+    <video id="recapVideo" class="rc-vid" muted playsinline preload="auto">
+      <source src="assets/video/v2.mp4" type="video/mp4">
+    </video>
+    <div class="rc-tag">前情提要</div>
+    <div class="rc-text" id="rcText"></div>
+    <div class="rc-dots" id="rcDots"></div>
+    <button class="rc-skip" id="rcSkip">跳过</button>
+  </div>
+
+  <!-- 集与集之间的全屏转场 -->
+  <div id="transOverlay" class="hidden">
+    <div class="tr-veil"></div>
+    <div class="tr-title" id="transTitle"></div>
+    <button id="transSkip">跳过</button>
+  </div>
+
+  <!-- 电镜 · XR 观察台（尾声剧情互动 / 也可独立进入） -->
+  <div id="xrOverlay" class="hidden">
+    <canvas id="xrCanvas"></canvas>
+    <div class="xr-top">
+      <div class="xr-title">电镜 · XR 观察台</div>
+      <div class="xr-sub" id="xrSub">拖拽平移 · 滚轮 / 双指缩放 · 点击发光点采集外泌体</div>
+    </div>
+    <div class="xr-count" id="xrCount">发现 0 / 7</div>
+    <div class="xr-why" id="xrWhy"></div>
+    <button class="xr-close" id="xrClose">离开观察台</button>
+  </div>
+
+  <div id="titleScreen">
+    <div class="ts-inner">
+      <div class="ts-kicker">互动故事 · 十六集</div>
+      <h1>窗外信使</h1>
+      <div class="ts-sub">外泌体与蓝夜 —— 一部关于记忆种子的故事</div>
+      <p class="ts-desc">在山屋的窗边，一位老人把一生拆成十六枚种子，交给守在他身边的年轻人。<br>
+        每一枚种子，都是一个细胞写给另一个细胞的信。</p>
+      <div class="ts-btns">
+        <button class="btn big" id="btnStart">开始回忆</button>
+        <button class="btn ghost big" id="btnContinue">继续上次</button>
+      </div>
+      <div class="ts-note">点击 / 空格推进 · 可用鼠标或触屏完成每一集的互动</div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script src="js/scene.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/gl.js"></script>
+<script src="js/microgames.js"></script>
+<script src="js/puzzles.js"></script>
+<script src="js/games3d.js"></script>
+<script src="js/acts1.js"></script>
+<script src="js/acts2.js"></script>
+<script src="js/lab.js"></script>
+<script src="js/xr.js"></script>
+<script src="js/engine.js"></script>
+</body>
+</html>
