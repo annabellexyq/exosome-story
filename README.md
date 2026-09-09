@@ -5,7 +5,21 @@
 
 ## 线上地址（生产）
 
-- **访问链接**：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
+- **GitHub Pages（主）**：https://annabellexyq.github.io/exosome-story/
+  - 仓库：https://github.com/annabellexyq/exosome-story
+  - 发布方式：仓库 `main` 分支根目录，Pages 自动构建；推送后约 1–3 分钟生效
+- 腾讯云开发 CloudBase（备用）：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
+
+## 发布更新
+
+站点为纯静态、无构建步骤，改完直接推送到 `main` 即可自动上线：
+
+```bash
+cd exo-window-story
+git add -A
+git commit -m "描述本次改动"
+git push origin main
+```
 
 ## 部署信息
 
