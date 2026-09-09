@@ -49,7 +49,9 @@
     ctx.font = '17px "PingFang SC","Hiragino Sans GB",sans-serif';
     var w = ctx.measureText(main).width;
     if (sub) { ctx.font = '13px "PingFang SC","Hiragino Sans GB",sans-serif'; w = Math.max(w, ctx.measureText(sub).width); }
-    var lh = 24, padX = 26, padY = 12, mTop = 14;
+    var lh = 24, padX = 26, padY = 12;
+    /* 细胞模式有金色虚线膜框（顶边约 y40-52），提示框下移避开，不再压住它 */
+    var mTop = (ACTIVE && ACTIVE.cell) ? 68 : 14;
     var bw = Math.min(W - 32, w + padX * 2), bh = lines.length * lh + padY * 2;
     var bx = (W - bw) / 2, by = mTop;
     /* 让 HUD 信息条不超出游戏装饰内框(46..W-46) */

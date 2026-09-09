@@ -702,7 +702,7 @@
   /* ---------------- HUD / 面板交互 ---------------- */
   function syncAudioUI() {
     var bm = $('#btnMusic'), bs = $('#btnSound');
-    if (bm) { bm.classList.toggle('off', !S.music); bm.textContent = S.music ? '背景乐' : '无背景乐'; }
+    if (bm) { bm.classList.toggle('off', !S.music); var mf = bm.querySelector('.lb-full'), ms = bm.querySelector('.lb-short'); if (mf) mf.textContent = S.music ? '背景乐' : '无背景乐'; if (ms) ms.textContent = S.music ? '乐' : '无乐'; }
     if (bs) { bs.classList.toggle('off', !S.sound); }
     var mv = $('#musicVol');
     if (mv) {
@@ -711,6 +711,61 @@
       var mvv = $('#musicVolVal'); if (mvv) mvv.textContent = v + '%';
     }
   }
+
+  /* HUD 自适应：优先保证「按钮不裸出色块」+「集名不被截断」。
+     同一屏宽下只收紧、不放松（锁定），避免换集时界面忽大忽小。
+     注：overflow 为 visible 时 scrollWidth 判定不可靠，改用子元素实际位置测量。 */
+  var hudLatchW = null, hudLatch = '';
+  function fitHud() {
+    var hud = $('#hud'); if (!hud) return;
+    var t = $('#hudTitle');
+    var w = window.innerWidth;
+    if (w !== hudLatchW) { hudLatchW = w; hudLatch = ''; }
+
+    hud.classList.remove('hud-tight', 'hud-mini');
+    if (hudLatch) hud.classList.add(hudLatch);
+
+    var overflow = function () {
+      var r = hud.getBoundingClientRect();
+      var l = Infinity, rt = -Infinity;
+      Array.prototype.forEach.call(hud.children, function (k) {
+        var kr = k.getBoundingClientRect();
+        if (!kr.width && !kr.height) return;
+        if (kr.left < l) l = kr.left;
+        if (kr.right > rt) rt = kr.right;
+      });
+      return (l < r.left - 1) || (rt > r.right + 1);
+    };
+    /* +2 容差：排除 letter-spacing 在末字后的占位造成的误判 */
+    var truncated = function () {
+      return !!(t && t.scrollWidth > t.clientWidth + 2);
+    };
+    var need = function () { return overflow() || truncated(); };
+
+    if (need()) hud.classList.add('hud-tight');
+    if (need()) hud.classList.add('hud-mini');
+    hudLatch = hud.classList.contains('hud-mini') ? 'hud-mini'
+             : (hud.classList.contains('hud-tight') ? 'hud-tight' : '');
+
+    /* 左上角计分板：按色块实际高度动态下移，彻底避免重叠（不再写死数值） */
+    var sh = $('#scoreHud');
+    if (sh) {
+      sh.style.top = (window.innerWidth <= 1024)
+        ? (hud.offsetTop + hud.offsetHeight + 10) + 'px'
+        : '';
+    }
+  }
+  window.addEventListener('resize', fitHud);
+  window.addEventListener('orientationchange', fitHud);
+  window.addEventListener('load', fitHud);
+  (function () {
+    var ht = $('#hudTitle');
+    if (ht && window.MutationObserver) {
+      new MutationObserver(fitHud).observe(ht, { childList: true, characterData: true, subtree: true });
+    }
+  })();
+  fitHud();
+  setTimeout(fitHud, 300);
 
   function syncParamUI() {
     $$('#panelParams .row').forEach(function (row) {
@@ -798,7 +853,7 @@
     S.musicVol = v / 100;
     S.music = v > 0;
     var bm = $('#btnMusic');
-    if (bm) { bm.classList.toggle('off', !S.music); bm.textContent = S.music ? '背景乐' : '无背景乐'; }
+    if (bm) { bm.classList.toggle('off', !S.music); var mf = bm.querySelector('.lb-full'), ms = bm.querySelector('.lb-short'); if (mf) mf.textContent = S.music ? '背景乐' : '无背景乐'; if (ms) ms.textContent = S.music ? '乐' : '无乐'; }
     if (global.Audio2) {
       global.Audio2.setMusicVol(S.musicVol);
       global.Audio2.setMusic(S.music);
