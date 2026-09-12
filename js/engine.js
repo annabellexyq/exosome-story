@@ -712,6 +712,23 @@
     }
   }
 
+  /* 左上角计分板定位：按顶栏「实际」下边缘动态避让，不写死数值。
+     必须抽成独立函数并在多种时机重算，否则会出现下面这个经典 bug：
+     手机首次排版时用的是回退字体，顶栏不换行、高度小 → 按小高度算出 top；
+     字体替换后顶栏变成 3 行、高度变大，但 resize/orientationchange 都不触发，
+     于是计分板被顶栏压住（左上角框和上框重叠）。
+     ——因此除 resize 外，还要监听顶栏自身尺寸变化（ResizeObserver）、
+     字体就绪（document.fonts.ready）、bfcache 恢复（pageshow）以及多次延时校正。 */
+  function placeScoreHud() {
+    var hud = $('#hud'), sh = $('#scoreHud');
+    if (!hud || !sh) return;
+    if (window.innerWidth <= 1024) {
+      sh.style.top = (hud.offsetTop + hud.offsetHeight + 10) + 'px';
+    } else {
+      sh.style.top = '';
+    }
+  }
+
   /* HUD 自适应：优先保证「按钮不裸出色块」+「集名不被截断」。
      同一屏宽下只收紧、不放松（锁定），避免换集时界面忽大忽小。
      注：overflow 为 visible 时 scrollWidth 判定不可靠，改用子元素实际位置测量。 */
@@ -748,24 +765,38 @@
              : (hud.classList.contains('hud-tight') ? 'hud-tight' : '');
 
     /* 左上角计分板：按色块实际高度动态下移，彻底避免重叠（不再写死数值） */
-    var sh = $('#scoreHud');
-    if (sh) {
-      sh.style.top = (window.innerWidth <= 1024)
-        ? (hud.offsetTop + hud.offsetHeight + 10) + 'px'
-        : '';
-    }
+    placeScoreHud();
   }
   window.addEventListener('resize', fitHud);
   window.addEventListener('orientationchange', fitHud);
   window.addEventListener('load', fitHud);
+  window.addEventListener('pageshow', fitHud);
   (function () {
     var ht = $('#hudTitle');
     if (ht && window.MutationObserver) {
       new MutationObserver(fitHud).observe(ht, { childList: true, characterData: true, subtree: true });
     }
   })();
+  /* 顶栏自身尺寸一变（换行 / 字体替换 / 集名变长）就重新避让；
+     placeScoreHud 只改计分板的 top，不影响顶栏尺寸，不会形成循环。 */
+  (function () {
+    var hud = $('#hud');
+    if (hud && window.ResizeObserver) {
+      try { new ResizeObserver(placeScoreHud).observe(hud); } catch (e) { }
+    }
+  })();
+  /* iOS 上工具栏收放会改变可视高度，但有时不派发 resize */
+  if (window.visualViewport && window.visualViewport.addEventListener) {
+    window.visualViewport.addEventListener('resize', placeScoreHud);
+  }
+  /* 字体替换（系统字体回退 → 最终字体）不触发任何事件，只能靠 fonts.ready + 延时兜底 */
+  try {
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(placeScoreHud).catch(function () { });
+    }
+  } catch (e) { }
   fitHud();
-  setTimeout(fitHud, 300);
+  [0, 120, 300, 800, 1600, 3000].forEach(function (t) { setTimeout(placeScoreHud, t); });
 
   function syncParamUI() {
     $$('#panelParams .row').forEach(function (row) {

@@ -355,7 +355,7 @@ body{
   text-shadow:0 6px 40px rgba(232,180,92,.28);
 }
 .ts-sub{margin-top:12px;font-family:var(--serif);font-size:15px;letter-spacing:.16em;color:var(--ink-dim)}
-.ts-desc{margin:26px auto 30px;font-size:13.5px;line-height:2.1;color:var(--ink-dim);max-width:520px;font-family:var(--serif)}
+.ts-desc{margin:26px auto 30px;font-size:13.5px;line-height:2.1;color:var(--ink-dim);max-width:520px;font-family:var(--serif);text-wrap:balance}
 .ts-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .ts-note{margin-top:26px;font-size:11.5px;color:rgba(201,191,174,.55);letter-spacing:.1em}
 
@@ -429,7 +429,7 @@ body{
 }
 .cv-sub{margin-top:14px;font-family:var(--serif);font-size:clamp(13px,2.4vw,17px);letter-spacing:.3em;color:var(--ink-dim);text-shadow:0 2px 12px rgba(0,0,0,.85);animation:cvUp 1s ease both .5s}
 .cv-line{width:min(260px,44vw);height:1px;margin:22px auto 0;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:cvUp 1s ease both .65s}
-.cv-desc{margin:22px auto 0;font-size:13.5px;line-height:2.1;color:var(--ink-dim);font-family:var(--serif);text-shadow:0 2px 14px rgba(0,0,0,.9);animation:cvUp 1s ease both .8s}
+.cv-desc{margin:22px auto 0;font-size:13.5px;line-height:2.1;color:var(--ink-dim);font-family:var(--serif);text-shadow:0 2px 14px rgba(0,0,0,.9);animation:cvUp 1s ease both .8s;text-wrap:balance}
 .cv-go{margin-top:34px;font-size:12.5px;letter-spacing:.16em;color:var(--gold);text-shadow:0 2px 12px rgba(0,0,0,.85);animation:cvUp 1s ease both 1s,cvPulse 2.4s ease-in-out infinite 1.8s}
 .cv-skip{
   margin:16px auto 0;display:block;background:transparent;border:1px solid rgba(255,255,255,.18);
@@ -607,13 +607,15 @@ body.story #scoreHud{display:flex}
 /* 任何弹层（窗景/实验台/手册/目录/彩蛋）打开时，隐藏左上计分板，彩蛋不再浮现在其中 */
 body.overlay-open #scoreHud{display:none !important}
 
-/* 窄屏：顶部 HUD 胶囊条会向两侧铺开，左上角计分板下移避让，避免压住顶栏 */
+/* 窄屏：顶部 HUD 胶囊条会向两侧铺开，左上角计分板下移避让，避免压住顶栏。
+   这里只是 JS 接管前的兜底值；真实位置由 JS 按顶栏「实测高度」动态计算
+   （见 engine.js 的 placeScoreHud：监听 ResizeObserver / fonts.ready / pageshow）。 */
 @media (max-width:820px){
-  #scoreHud{top:74px}
+  #scoreHud{top:92px}
 }
-/* 手机端色块稍高（按钮被自适应压缩后仍单行），计分板再下移一点避让 */
+/* 手机竖屏顶栏会换成 3 行（按钮 + 剧情瓶 + 集名），兜底值需比它更高才不重叠 */
 @media (max-width:640px){
-  #scoreHud{top:82px}
+  #scoreHud{top:112px}
 }
 
 /* ---------- 音乐音量条（点 HUD「乐」呼出） ---------- */
