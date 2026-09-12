@@ -8,13 +8,14 @@
 - **GitHub Pages（主）**：https://annabellexyq.github.io/exosome-story/
   - 仓库：https://github.com/annabellexyq/exosome-story
   - 发布方式：仓库 `main` 分支根目录，Pages 自动构建；推送后约 1–3 分钟生效
-- 腾讯云开发 CloudBase（备用）：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
+- 腾讯云开发 CloudBase：
+  - **专属域名（推荐对外）**：https://exostory-ai-native-d7gjgsyyefdea561d.webapps.tcloudbase.com/
+  - 共享域名（根路径）：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
   - 该环境（`ai-native-d7gjgsyyefdea561d`）的**根目录 `/` 归本项目**：站点文件直接放在根 —— `index.html` + `css/` + `js/` + `assets/`
+  - 专属域名来自 CloudApp（`serviceName=exostory`，`appPath=/`），网关把它映射到托管根目录
   - 历史入口 `/exo-story/` 仍然可用（页内用 `<base href="/">` 复用根目录资源），但对外统一用根路径即可
-  - 该环境有 3 个网关域名（`*.tcloudbaseapp.com`、`*.ap-shanghai.app.tcloudbase.com`、`youyitianxia-*.webapps.tcloudbase.com`），
-    底层是**同一个静态托管 Bucket**：前两个的根路径都指向托管根目录 `/`（即本项目）；
-    其中 `youyitianxia-*.webapps.tcloudbase.com` 是「游医天下」的 CloudApp 专属域名（`appPath=/youyi`），
-    根路径映射到 `/youyi`，**与本项目无关**
+  - 同环境共 3 个 CloudApp，各自带专属域名，互不干扰：
+    `youyitianxia` → `/youyi`（游医天下）、`exostory` → `/`（本项目）、`exopinch` → `/exo-pinch`（囊泡漂流）
   - ⚠️ 切勿把本项目部署到 `/youyi/`、`/exo-pinch/` —— 那分别是「游医天下」和「囊泡漂流」的目录
 
 ## 发布更新
