@@ -1197,6 +1197,13 @@
     });
   }
 
+  /* 对外接口：供内容生成接入层注入「AI 专属一集」并直接播放 */
+  window.EXO_STORY = {
+    acts: function () { return ACTS; },
+    addEpisode: function (ep) { ACTS.push(ep); return ACTS.length - 1; },
+    playEpisode: function (ep) { var i = ACTS.push(ep) - 1; boot(i); return i; }
+  };
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
