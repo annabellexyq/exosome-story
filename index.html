@@ -251,6 +251,32 @@
         <button class="btn ghost" id="letterToCover">回到游戏封面</button>
       </div>
     </div>
+
+    <!-- AI 专属一集：生辰八字 → 实时生成剧情对话 + 背景 -->
+    <div class="panel" id="panelAI">
+      <h3>专属一集 <small>以你的生辰八字，实时生成一段属于你的窗外之信</small></h3>
+      <div class="row"><label>出生</label>
+        <input id="aiYear" type="number" placeholder="年" min="1900" max="2100" />
+        <input id="aiMonth" type="number" placeholder="月" min="1" max="12" />
+        <input id="aiDay" type="number" placeholder="日" min="1" max="31" />
+        <input id="aiHour" type="number" placeholder="时 0-23" min="0" max="23" />
+      </div>
+      <div id="aiBazi" class="ai-bazi">填好出生时间，这里会显示你的四柱八字</div>
+      <details class="ai-api">
+        <summary>接入内容生成 API（留空则用本地生成，照常可玩）</summary>
+        <input id="aiBaseUrl" placeholder="API 地址（OpenAI 兼容，如 https://api.deepseek.com/v1）" />
+        <input id="aiKey" type="password" placeholder="API Key（留空则保持原值，不下发）" />
+        <input id="aiModel" placeholder="模型名，如 deepseek-chat" />
+        <input id="aiImgUrl" placeholder="文生图接口（可选，OpenAI 兼容 images/generations）" />
+        <input id="aiImgKey" type="password" placeholder="文生图 Key（可选）" />
+        <p class="ai-warn">提示：纯前端直连会暴露 Key，正式上线请改用服务端代理。</p>
+      </details>
+      <div id="aiStatus" class="ai-status"></div>
+      <div class="panel-foot center">
+        <button class="btn ghost" id="aiCancel">取消</button>
+        <button class="btn" id="aiGen">生成并播放</button>
+      </div>
+    </div>
   </div>
 
   <!-- 封面 -->
@@ -312,6 +338,7 @@
         <button class="btn big" id="btnStart">开始回忆</button>
         <button class="btn ghost big" id="btnContinue">继续上次</button>
       </div>
+      <button class="btn ghost ts-ai" id="btnAIStory">✦ 以自己的生辰八字，生成专属一集</button>
       <div class="ts-note">点击 / 空格推进 · 可用鼠标或触屏完成每一集的互动</div>
     </div>
   </div>
@@ -329,6 +356,7 @@
 <script src="js/acts2.js"></script>
 <script src="js/lab.js"></script>
 <script src="js/xr.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/engine.js"></script>
 </body>
 </html>
