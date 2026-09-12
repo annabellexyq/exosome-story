@@ -1,0 +1,117 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>窗外信使 · 项目演示</title><style>
+:root{--bg:#0a0d14;--ink:#eef2f7;--mut:#9aa6b8;--gold:#e9c46a;--blue:#7fb2ff;--line:rgba(255,255,255,.12)}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:radial-gradient(120% 120% at 80% 0%,#16203a 0%,var(--bg) 55%);color:var(--ink);font:16px/1.7 -apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;overflow:hidden}
+#deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;padding:7vh 9vw;animation:fade .5s ease}
+.slide.on{display:flex}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.kick{letter-spacing:.32em;color:var(--mut);font-size:14px;margin-bottom:14px}
+h1{font-size:clamp(36px,6vw,76px);margin:0 0 18px;line-height:1.08;font-weight:700}
+h1 .em{background:linear-gradient(90deg,var(--gold),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{font-size:clamp(26px,3.6vw,44px);margin:0 0 26px;display:flex;align-items:center;gap:16px}
+h2 .n{font:700 14px/1 ui-monospace,monospace;color:var(--bg);background:var(--gold);padding:8px 12px;border-radius:8px;letter-spacing:.1em}
+p{margin:0 0 14px;color:var(--mut);max-width:60ch}
+.lead{color:var(--ink);font-size:clamp(17px,2vw,22px);max-width:48ch}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:8px;max-width:980px}
+.card{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:rgba(255,255,255,.03)}
+.card b{color:var(--gold);display:block;margin-bottom:6px;font-size:17px}
+.card span{color:var(--mut);font-size:14.5px}
+ul{margin:6px 0 0;padding-left:0;list-style:none;max-width:60ch}
+li{padding:9px 0 9px 26px;position:relative;color:var(--ink);border-bottom:1px solid var(--line)}
+li:before{content:"▹";position:absolute;left:0;color:var(--blue)}
+li small{color:var(--mut);display:block;font-size:13.5px;margin-top:2px}
+.nav{position:fixed;bottom:22px;right:26px;display:flex;gap:10px;align-items:center;z-index:9}
+.nav button{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 16px;font-size:14px;cursor:pointer}
+.nav button:hover{background:rgba(255,255,255,.16)}
+.nav .pg{color:var(--mut);font:13px ui-monospace,monospace}
+.tag{display:inline-block;margin-top:18px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;color:var(--mut);font-size:13px}
+.maker{position:fixed;top:18px;right:26px;z-index:9;color:var(--mut);font:13px ui-monospace,monospace;letter-spacing:.06em;opacity:.85}
+</style></head><body><div id="deck">
+<div class="slide on" data-i="0">
+  <div class="kick">互动叙事 · 十六集 · 纯前端</div>
+  <h1>窗外信使<br><span class="em">外泌体与蓝夜</span></h1>
+  <p class="lead">在傍山美术馆的窗边，一位老人把一生拆成十六枚种子，交给守在他身边的年轻人。每一枚种子，都是一个细胞写给另一个细胞的信。</p>
+  <div class="tag">项目演示 · 产品定位 / 技术 / 创意 / 玩法</div>
+</div>
+
+<div class="slide" data-i="1">
+  <h2><span class="n">01</span> 产品定位</h2>
+  <p class="lead">一款把「外泌体」科普包裹在祖孙/师生告别故事里的纯前端互动叙事小游戏。</p>
+  <div class="cards">
+    <div class="card"><b>形态</b><span>HTML + CSS + 原生 JS，无构建、无后端，纯静态站点。</span></div>
+    <div class="card"><b>受众</b><span>科普读者 + 临终陪伴 / 安宁主题人群，主打「安详、不催促」。</span></div>
+    <div class="card"><b>价值主张</b><span>没有输赢、没有敌人、没有倒计时，只有窗外慢慢亮起的光。</span></div>
+    <div class="card"><b>部署</b><span>GitHub Pages 主站 + 腾讯云 CloudBase 静态托管双通道，改完即上线。</span></div>
+  </div>
+</div>
+
+<div class="slide" data-i="2">
+  <h2><span class="n">02</span> 核心技术应用</h2>
+  <p class="lead">零框架、零构建的轻量前端工程，所有交互与叙事都跑在浏览器里。</p>
+  <ul>
+    <li>纯前端单页架构<small>原生 JS 分模块加载（scene / engine / microgames / lab / xr / audio / gl），无打包、无依赖。</small></li>
+    <li>Canvas 2D 实时窗景<small>scene.js 渲染底图 + 季节/天气/时刻色调 + 记忆光点粒子，窗外随剧情与参数变化。</small></li>
+    <li>剧情引擎 engine.js<small>打字机对话、选择分支、玩法调度、种子收集、手册、目录、localStorage 存档。</small></li>
+    <li>实验台 lab.js<small>上帝视角外泌体投递沙盒：选源/靶细胞、标记、离心分离、投递，记录可保存。</small></li>
+    <li>XR 观察台 xr.js<small>电镜 3D 观察台：拖拽平移、缩放、点击发光点采集 7 枚外泌体。</small></li>
+    <li>资源与音画<small>4 段视频彩蛋（封面/前情提要/转场/仰望星空）+ 背景乐与按键音。</small></li>
+  </ul>
+</div>
+<div class="slide" data-i="3">
+  <h2><span class="n">03</span> 游戏创意点</h2>
+  <div class="cards">
+    <div class="card"><b>外泌体 = 记忆种子</b><span>科学概念与叙事母题合一：细胞释放的外泌体数以万计，叙事里只凝练成 16 枚记忆种子——外泌体数量远大于种子。</span></div>
+    <div class="card"><b>记忆之瓶 + 反转</b><span>进度可视化 HUD 显示 n/16；第 16 集数出只有 15 枚——最后一枚在「听的人」那儿。</span></div>
+    <div class="card"><b>窗景即剧情</b><span>参数面板（季节/天气/时刻/光点）本身成为剧情，第 15 集「把窗外转到秋天」。</span></div>
+    <div class="card"><b>选择只染色</b><span>每集一次三选，只影响种子色调与一两句台词，不做生死分支，保证线性可通读。</span></div>
+    <div class="card"><b>16 张科学卡</b><span>每枚种子附一条真实外泌体科普，集为「外泌体手册」可随时回看。</span></div>
+    <div class="card"><b>温柔彩蛋</b><span>仰望星空 + 一封没寄出的信：写给走到人生最后的人的陪伴寄语。</span></div>
+  </div>
+</div>
+<div class="slide" data-i="4">
+  <h2><span class="n">04</span> 核心玩法</h2>
+  <p class="lead">每集结构固定：旁白 + 对话 → 1 次选择（染色）→ 1 次互动（Canvas 小游戏）→ 1 枚种子（科学卡）→ 收进记忆之瓶。</p>
+  <ul>
+    <li>序章教学<small>自由调一次窗外参数（季节/天气/时刻/光点），「看风景是有规矩的」。</small></li>
+    <li>16 种互不重复的互动<small>接晨光 · 一起呼吸 · 显影 · 汽笛坡度 · 对焦 · 连星 · 信使航线 · 接萤火 · 浇花 · 助升高 · 撑伞 · 描信 · 记方 · 理照片 · 四季之转 · 点亮 16 星。</small></li>
+    <li>玩法嵌在剧情流里<small>先两句铺垫 → 玩法 → 两句收束，而非独立小游戏页面。</small></li>
+    <li>实验台 + XR 观察台<small>上帝视角投递沙盒与电镜 3D 观察，作为主线之外的拓展体验。</small></li>
+  </ul>
+</div>
+
+<div class="slide" data-i="5">
+  <div class="kick">ONE MORE THING</div>
+  <h1>把窗<span class="em">打开</span></h1>
+  <p class="lead">「外泌体不会生产新的东西。它只是把一处的消息，送到另一处。只要还有人愿意听，这封信就一直在路上。」</p>
+  <div class="tag">GitHub Pages · CloudBase 双通道已上线 · 纯静态可一键部署</div>
+</div>
+</div><div class="maker">制作人：AnnabelleXu</div>
+<div class="nav">
+  <span class="pg" id="pg">1 / 6</span>
+  <button id="prev">← 上一页</button>
+  <button id="next">下一页 →</button>
+</div>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var i=0,pg=document.getElementById('pg');
+  function show(n){
+    i=(n+slides.length)%slides.length;
+    slides.forEach(function(s,k){s.classList.toggle('on',k===i);});
+    pg.textContent=(i+1)+' / '+slides.length;
+  }
+  function go(d){show(i+d);}
+  document.getElementById('next').onclick=function(){go(1);};
+  document.getElementById('prev').onclick=function(){go(-1);};
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(1);}
+    if(e.key==='ArrowLeft'){go(-1);}
+  });
+  document.getElementById('deck').addEventListener('click',function(e){
+    if(e.target.closest('.nav')||e.target.closest('button'))return;
+    go(1);
+  });
+  show(0);
+})();
+</script></body></html>
