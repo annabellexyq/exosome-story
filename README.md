@@ -11,9 +11,11 @@
 - 腾讯云开发 CloudBase（备用）：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
   - 该环境（`ai-native-d7gjgsyyefdea561d`）的**根目录 `/` 归本项目**：站点文件直接放在根 —— `index.html` + `css/` + `js/` + `assets/`
   - 历史入口 `/exo-story/` 仍然可用（页内用 `<base href="/">` 复用根目录资源），但对外统一用根路径即可
-  - 该环境下 3 个网关域名（`*.webapps.tcloudbase.com`、`*.tcloudbaseapp.com`、`*.ap-shanghai.app.tcloudbase.com`）
-    全部指向**同一份托管内容**，不是多个站点，切勿分别部署造成互相覆盖
-  - ⚠️ 同环境还托管着另外两个项目：「游医天下」在 `/youyi/`、「囊泡漂流」在 `/exo-pinch/`，不要把自己的文件传到这两个目录里
+  - 该环境有 3 个网关域名（`*.tcloudbaseapp.com`、`*.ap-shanghai.app.tcloudbase.com`、`youyitianxia-*.webapps.tcloudbase.com`），
+    底层是**同一个静态托管 Bucket**：前两个的根路径都指向托管根目录 `/`（即本项目）；
+    其中 `youyitianxia-*.webapps.tcloudbase.com` 是「游医天下」的 CloudApp 专属域名（`appPath=/youyi`），
+    根路径映射到 `/youyi`，**与本项目无关**
+  - ⚠️ 切勿把本项目部署到 `/youyi/`、`/exo-pinch/` —— 那分别是「游医天下」和「囊泡漂流」的目录
 
 ## 发布更新
 
