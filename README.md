@@ -9,6 +9,11 @@
   - 仓库：https://github.com/annabellexyq/exosome-story
   - 发布方式：仓库 `main` 分支根目录，Pages 自动构建；推送后约 1–3 分钟生效
 - 腾讯云开发 CloudBase（备用）：https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/
+  - 该环境（`ai-native-d7gjgsyyefdea561d`）的**根目录 `/` 归本项目**：站点文件直接放在根 —— `index.html` + `css/` + `js/` + `assets/`
+  - 历史入口 `/exo-story/` 仍然可用（页内用 `<base href="/">` 复用根目录资源），但对外统一用根路径即可
+  - 该环境下 3 个网关域名（`*.webapps.tcloudbase.com`、`*.tcloudbaseapp.com`、`*.ap-shanghai.app.tcloudbase.com`）
+    全部指向**同一份托管内容**，不是多个站点，切勿分别部署造成互相覆盖
+  - ⚠️ 同环境还托管着另外两个项目：「游医天下」在 `/youyi/`、「囊泡漂流」在 `/exo-pinch/`，不要把自己的文件传到这两个目录里
 
 ## 发布更新
 
@@ -31,7 +36,7 @@ git push origin main
 | 环境别名 | `ai-native` |
 | 地域 | `ap-shanghai` |
 | 套餐 | 个人版（`baas_personal`） |
-| 托管域名 | `ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com` |
+| 托管域名 | `ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com`（本项目占用**根路径 `/`**，另有历史入口 `/exo-story/`） |
 | 首页/错误页 | `index.html` |
 
 ### 使用的 CloudBase 资源
@@ -62,16 +67,19 @@ python3 -m http.server 8300
 ## 重新部署（更新线上内容）
 
 1. 修改本地文件；
-2. 上传到静态托管根目录（忽略 `.git/`、`.codebuddy/`、`*.md`）：
+2. 推 `main` → GitHub Pages 自动重建（主链路）；
+3. CloudBase 备用链路：本项目占用**托管根目录 `/`**，整包上传即可：
 
    ```
    manageHosting action=upload
-     localPath = <本项目绝对路径>
-     cloudPath = /
-     ignore    = ["**/.git/**", "**/.codebuddy/**", "**/*.md"]
+     files = [{ localPath: <本项目>/index.html, cloudPath: index.html }, …]
    ```
 
-3. 若 CDN 有缓存，访问时带随机查询串刷新，例如：
+   ⚠️ **不要**把文件传到 `/youyi/` 或 `/exo-pinch/` —— 那分别是「游医天下」和「囊泡漂流」的目录。
+   若只是想让历史入口 `/exo-story/` 跟着更新，上传的必须是**加了 `<base href="/">` 的副本**（紧跟 `<head>` 之后），
+   不要直接传源文件，否则 `/exo-story/` 下的相对路径会 404。
+
+4. 若 CDN 有缓存，访问时带随机查询串刷新，例如：
    `https://ai-native-d7gjgsyyefdea561d-1302042144.tcloudbaseapp.com/?v=<时间戳>`
 
 ## 备注
