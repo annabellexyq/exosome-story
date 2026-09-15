@@ -25,6 +25,7 @@
   /* 主线集数：ACTS 之后会被「AI 专属一集」追加/替换，这个值固定不变 */
   var MAIN_LEN = ACTS.length;
   var AI_SLOT = -1;        /* 「AI 专属一集」在 ACTS 里的槽位；-1 = 还没生成过 */
+  var AI_FROM = 'title';   /* 番外是从哪进去的：title=标题屏 / chapters=记忆目录（播完就回到这里） */
   var ALL_FACTS = ACTS.map(function (a) {
     var s = (a.steps || []).filter(function (x) { return x.k === 'seed'; })[0];
     return s ? { n: a.n, name: s.name, fact: s.fact } : null;
@@ -641,12 +642,12 @@
       S.i++;
     }
     /* 本集结束 */
-    /* 番外：不推进主线进度，播完就「接回原本剧情」——回到主线当前该看的那一集 */
+    /* 番外：不推进主线进度，也不接管主线播放——播完就回到进来之前的界面 */
     if (ep.side) {
-      toast('番外讲完了 · 回到原来那一段');
-      await sleep(1800);
+      toast('番外讲完了 · 原来那一段还在原处等你');
+      await sleep(1600);
       if (my !== S.runId) return;
-      await runEpisode(Math.min(S.unlocked, MAIN_LEN - 1));
+      backFromSide();
       return;
     }
     if (idx + 1 > S.unlocked) { S.unlocked = idx + 1; save(); }
@@ -659,6 +660,18 @@
       await sleep(1800);
       if (my !== S.runId) return;
       await runEpisode(idx + 1);
+    }
+  }
+
+  /* 番外结束：回到进入番外之前的界面（标题屏 / 记忆目录），主线进度原样不动、不自动续播 */
+  function backFromSide() {
+    S.runId++;                        /* 中断番外这一条剧情流 */
+    try { stopSession(); } catch (e) { }
+    document.body.classList.remove('story');
+    $('#hud').classList.add('hidden');
+    $('#titleScreen').classList.remove('hidden');
+    if (AI_FROM === 'chapters') {
+      try { $('#btnChapters').click(); } catch (e) { }   /* 回目录并重绘（能看到刚生成的这一集） */
     }
   }
 
@@ -854,6 +867,7 @@
     d.addEventListener('click', function () {
       sfx.click();
       if (AI_SLOT >= 0) { closePanel(); boot(AI_SLOT); return; }
+      AI_FROM = 'chapters';            /* 从目录进去的：播完回目录 */
       if (window.EXOAI && window.EXOAI.open) { window.EXOAI.open(); return; }
       var b = $('#btnAIStory'); if (b) b.click();
     });
@@ -1209,6 +1223,9 @@
       sfx.click(); beginAudio();
       boot(Math.min(S.unlocked, ACTS.length - 1));
     });
+    /* 标题屏上的「专属一集」按钮：记下入口是标题屏，番外播完仍回标题屏 */
+    var aiEntry = $('#btnAIStory');
+    if (aiEntry) aiEntry.addEventListener('click', function () { AI_FROM = 'title'; });
     $('#endAgain').addEventListener('click', function () { closePanel(); boot(0); });
     $('#endEpilogue').addEventListener('click', function () { S.endingChoice = 'epilogue'; closePanel(); });
     $('#endFree').addEventListener('click', function () {
