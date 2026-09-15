@@ -264,6 +264,10 @@ body{
 .ch-item .n{font-size:11px;letter-spacing:.2em;color:var(--gold)}
 .ch-item .t{font-family:var(--serif);font-size:15px;margin-top:4px}
 .ch-item .s{font-size:11px;color:var(--ink-dim);margin-top:3px}
+/* 目录里的「AI 专属一集」：与主线集数区分开 */
+.ch-item.ch-ai{border-color:rgba(232,180,92,.45);background:rgba(232,180,92,.07)}
+.ch-item.ch-ai .n{color:#f0c674}
+.ch-item.ch-ai .t{color:#f5e6c8}
 
 /* 手册 */
 .codex{display:flex;flex-direction:column;gap:10px}

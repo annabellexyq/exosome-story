@@ -197,7 +197,7 @@ window.EXOAI = (function () {
 
     return {
       id: 'ai-' + bz.text.replace(/\s/g, '') + '-' + (Date.now() % 100000),
-      n: 'AI',
+      n: '番外',
       title: String(json.title || '专属一集').slice(0, 12),
       sub: String(json.sub || ('生于 ' + bz.text)),
       sc: { img: bgUrl || 'assets/bg/ep15.png', tod: tod, weather: weather, season: season, motes: motes },
@@ -239,7 +239,7 @@ window.EXOAI = (function () {
     ];
     return {
       id: 'local-' + bz.text.replace(/\s/g, ''),
-      n: 'AI',
+      n: '番外',
       title: f.title,
       sub: '生辰专属 · ' + bz.text,
       sc: { img: 'assets/bg/ep15.png', tod: f.tod, weather: f.weather, season: season, motes: 5 },
@@ -344,6 +344,7 @@ window.EXOAI = (function () {
 
   return {
     getConfig: getConfig, setConfig: setConfig, configured: configured,
-    baziFrom: baziFrom, generateEpisode: generateEpisode, fallbackEpisode: fallbackEpisode
+    baziFrom: baziFrom, generateEpisode: generateEpisode, fallbackEpisode: fallbackEpisode,
+    open: openAiPanel          /* 供剧情引擎（目录里的「专属一集」条目）打开生成本面板 */
   };
 })();

@@ -22,6 +22,9 @@
   };
 
   var ACTS = (window.ACTS1 || []).concat(window.ACTS2 || []);
+  /* 主线集数：ACTS 之后会被「AI 专属一集」追加/替换，这个值固定不变 */
+  var MAIN_LEN = ACTS.length;
+  var AI_SLOT = -1;        /* 「AI 专属一集」在 ACTS 里的槽位；-1 = 还没生成过 */
   var ALL_FACTS = ACTS.map(function (a) {
     var s = (a.steps || []).filter(function (x) { return x.k === 'seed'; })[0];
     return s ? { n: a.n, name: s.name, fact: s.fact } : null;
@@ -562,7 +565,7 @@
   }
 
   /* ---------------- 剧集流程 ---------------- */
-  function epNumText(n) { return (n === '序' || n === '终' || n === '尾声') ? n : ('第 ' + n + ' 集'); }
+  function epNumText(n) { return (n === '序' || n === '终' || n === '尾声' || n === '番外') ? n : ('第 ' + n + ' 集'); }
 
   async function showTitleCard(ep) {
     var tc = $('#titlecard');
@@ -620,7 +623,8 @@
     var ep = ACTS[idx];
     if (!ep) return;
     /* 进入第 N 集，瓶子计数至少到 N（序为 0），与集数保持一致 */
-    S.epNum = (typeof ep.n === 'number') ? ep.n : 0;
+    /* 番外（AI 专属一集）不属于主线，不改动「第 N 集」的计数 */
+    if (!ep.side) S.epNum = (typeof ep.n === 'number') ? ep.n : 0;
     updateJar();
     /* 关键分界插入转场：16→终（半透明薄纱 + 标题，不放视频）。序→第一集、8→9 不再打断 */
     if (idx === 17) {
@@ -637,6 +641,14 @@
       S.i++;
     }
     /* 本集结束 */
+    /* 番外：不推进主线进度，播完就「接回原本剧情」——回到主线当前该看的那一集 */
+    if (ep.side) {
+      toast('番外讲完了 · 回到原来那一段');
+      await sleep(1800);
+      if (my !== S.runId) return;
+      await runEpisode(Math.min(S.unlocked, MAIN_LEN - 1));
+      return;
+    }
     if (idx + 1 > S.unlocked) { S.unlocked = idx + 1; save(); }
     /* 尾声为最后一集，彩蛋已作为本集步骤播放，无后续转场 */
     if (idx === ACTS.length - 1) {
@@ -831,10 +843,27 @@
     if (window.LAB) window.LAB.open();
   });
 
+  /* 目录里的「专属一集」条目：还没生成 → 打开生辰八字面板；已生成 → 直接重播 */
+  function aiChapterItem() {
+    var ep = AI_SLOT >= 0 ? ACTS[AI_SLOT] : null;
+    var d = document.createElement('div');
+    d.className = 'ch-item ch-ai';
+    d.innerHTML = '<div class="n">番外 · AI</div>' +
+      '<div class="t">' + (ep ? ep.title : '专属一集') + '</div>' +
+      '<div class="s">' + (ep && ep.aiBazi ? ('生辰 ' + ep.aiBazi + ' · 可重看') : '以自己的生辰八字生成') + '</div>';
+    d.addEventListener('click', function () {
+      sfx.click();
+      if (AI_SLOT >= 0) { closePanel(); boot(AI_SLOT); return; }
+      if (window.EXOAI && window.EXOAI.open) { window.EXOAI.open(); return; }
+      var b = $('#btnAIStory'); if (b) b.click();
+    });
+    return d;
+  }
+
   $('#btnChapters').addEventListener('click', function () {
     sfx.click();
     var box = $('#chapterList'); box.innerHTML = '';
-    ACTS.forEach(function (ep, idx) {
+    ACTS.slice(0, MAIN_LEN).forEach(function (ep, idx) {
       var d = document.createElement('div');
       var locked = idx > S.unlocked;
       d.className = 'ch-item' + (locked ? ' locked' : '');
@@ -843,6 +872,7 @@
       if (!locked) d.addEventListener('click', function () { closePanel(); boot(idx); });
       box.appendChild(d);
     });
+    box.appendChild(aiChapterItem());   /* 目录里也体现「AI 专属一集」 */
     openPanel('panelChapters');
   });
 
@@ -1198,10 +1228,22 @@
   }
 
   /* 对外接口：供内容生成接入层注入「AI 专属一集」并直接播放 */
+  /* 番外只占一个槽位：重新生成就替换上一集，目录里始终只有一条「专属一集」 */
+  function upsertSide(ep) {
+    ep.side = true;
+    if (AI_SLOT < 0) { ACTS.push(ep); AI_SLOT = ACTS.length - 1; }
+    else { ACTS[AI_SLOT] = ep; }
+    return AI_SLOT;
+  }
   window.EXO_STORY = {
     acts: function () { return ACTS; },
-    addEpisode: function (ep) { ACTS.push(ep); return ACTS.length - 1; },
-    playEpisode: function (ep) { var i = ACTS.push(ep) - 1; boot(i); return i; }
+    mainActs: function () { return ACTS.slice(0, MAIN_LEN); },
+    addEpisode: function (ep) { return upsertSide(ep); },
+    playEpisode: function (ep) { var i = upsertSide(ep); boot(i); return i; },
+    openAI: function () {
+      if (window.EXOAI && window.EXOAI.open) { window.EXOAI.open(); return true; }
+      return false;
+    }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
